@@ -39,7 +39,7 @@ public class JSONResponseParser<ParsedValue: Decodable, ErrorType: ResponseError
             
             if let json = data, let entity = try? decoder.decode(Parsable.self, from: json) {
                 return .success(entity)
-            } else if let entity = (try? decoder.decode(Parsable.self, from: Data())) as? Parsable {
+            } else if let entity = try? decoder.decode(Parsable.self, from: Data()) {
                 return .success(entity)
             } else {
                 return .failure(ErrorType(response: response, data: data, error: error))
