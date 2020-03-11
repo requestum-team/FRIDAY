@@ -39,7 +39,7 @@ public class JSONResponseParser<ParsedValue: Decodable, ErrorType: ResponseError
             
             if let json = data, let entity = try? decoder.decode(Parsable.self, from: json) {
                 return .success(entity)
-            } else if let entity = (try? decoder.decode(Parsable.self, from: Data())) as? Parsable {
+            } else if let entity = try? decoder.decode(Parsable.self, from: Data()) {
                 return .success(entity)
             } else {
                 return .failure(ErrorType(response: response, data: data, error: error))
@@ -51,14 +51,20 @@ public class JSONResponseParser<ParsedValue: Decodable, ErrorType: ResponseError
             return .failure(ErrorType(response: response, data: data, error: error))
         }
         do {
-            if let entity = try? decoder.decode(Parsable.self, from: json) {
-                return .success(entity)
-            }
+            let entity = try decoder.decode(Parsable.self, from: json)
+            return .success(entity)
+        } catch DecodingError.dataCorrupted(let context) {
+            return .failure(ErrorType(response: response, data: data, error: DecodingError.dataCorrupted(context)))
+        } catch DecodingError.keyNotFound(let key, let context) {
+            return .failure(ErrorType(response: response, data: data, error: DecodingError.keyNotFound(key,context)))
+        } catch DecodingError.typeMismatch(let type, let context) {
+            return .failure(ErrorType(response: response, data: data, error: DecodingError.typeMismatch(type,context)))
+        } catch DecodingError.valueNotFound(let value, let context) {
+            return .failure(ErrorType(response: response, data: data, error: DecodingError.valueNotFound(value,context)))
         } catch let error {
-            return .failure(ErrorType(response: response, data: data, error: error))
             print("Error: \(error)")
+            return .failure(ErrorType(response: response, data: data, error: error))
         }
-         return .failure(ErrorType(response: response, data: data, error: error))
     }
 }
 
