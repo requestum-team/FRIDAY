@@ -130,6 +130,9 @@ extension Request {
         
         self.didGetResponse = { [weak self]  in
             
+            if FRIDAY.isLoggingEnabled {
+                self?.logResponse()
+            }
             let result = parser.parse(
                 request: self?.internalResponse?.request,
                 response: self?.internalResponse?.response,
@@ -146,9 +149,6 @@ extension Request {
             
             queue.async {
                 completion(response)
-            }
-            if FRIDAY.isLoggingEnabled {
-                self?.logResponse()
             }
         }
         
@@ -203,13 +203,23 @@ extension Request {
         if let response = self.internalResponse?.response, let url = response.url {
             
             print("\nFRIDAY:\nResponse\n")
-            print("\(response.statusCode) \(self.method) \(url.absoluteString)")
-            print("Response Headers\(response.allHeaderFields)")
-            print("\n")
+            print("\(response.statusCode) \(self.method.rawValue.uppercased()) \(url.absoluteString)")
+            print("\nResponse Headers: \(response.allHeaderFields)")
+            if let json = self.internalResponse?.data,
+               let jsonString = String(data: json, encoding: String.Encoding.utf8) {
+                
+                print("\nData:")
+                if jsonString.isEmpty {
+                    print("\nEmpty\n")
+                } else {
+                    print("\n\(jsonString)")
+                }
+            }
+            print("\n------------")
             
         } else if let internalError = self.internalError {
             
-            print("\nFRIDAY:")
+            print("\nFRIDAY:\n")
             print("\(self.method) \(self.url.asURL().absoluteString)")
             print("Error: \(internalError.localizedDescription)")
             print("\n")

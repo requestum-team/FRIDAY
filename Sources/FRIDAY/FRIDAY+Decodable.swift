@@ -24,16 +24,6 @@ public class JSONResponseParser<ParsedValue: Decodable, ErrorType: ResponseError
         
         }
         
-        if isLoggingEnabled, let json = data, let jsonString = String(data: json, encoding: String.Encoding.utf8) {
-            
-            print("Data:")
-            if jsonString.isEmpty {
-                print("\nEmpty\n")
-            } else {
-                print("\n\(jsonString)\n")
-            }
-        }
-       
         // TODO: add check type for Parsable is Optional<>
         if Parsable.self == Data?.self {
             
