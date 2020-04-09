@@ -71,10 +71,7 @@ open class Client {
             } else {
                 request.internalError = error
             }
-            
-            if FRIDAY.isLoggingEnabled {
-                request.logResponse()
-            }
+        
         }
         
         return request

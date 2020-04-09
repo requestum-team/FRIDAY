@@ -129,7 +129,7 @@ extension Request {
         completion: @escaping (Response<Parser.Parsable, Parser.ParsingError>) -> Void) -> Self {
         
         self.didGetResponse = { [weak self]  in
-                    
+            
             let result = parser.parse(
                 request: self?.internalResponse?.request,
                 response: self?.internalResponse?.response,
@@ -146,6 +146,9 @@ extension Request {
             
             queue.async {
                 completion(response)
+            }
+            if FRIDAY.isLoggingEnabled {
+                self?.logResponse()
             }
         }
         
