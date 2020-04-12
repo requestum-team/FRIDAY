@@ -15,7 +15,7 @@ public typealias Parameters = [String: Any]
 open class Request {
     
     public typealias ProgressHandler = (Progress) -> Void
-
+    
     public let url: URLConvertible
     public let method: HTTP.Method
     public let parameters: Parameters?
@@ -27,7 +27,7 @@ open class Request {
     public var didGetResponse: (() -> Void)?
     
     public var alamofireHeaders: Alamofire.HTTPHeaders? {
-      
+        
         guard let headers = self.headers else {
             return nil
         }
@@ -43,7 +43,7 @@ open class Request {
         
         return operationQueue
     }()
-
+    
     var internalRequest: Alamofire.DataRequest? {
         didSet {
             internalRequest?.validate(statusCode: 200..<400)
@@ -53,13 +53,13 @@ open class Request {
     
     var internalResponse: AFDataResponse<Data>? {
         didSet {
-           self.didGetResponse?()
+            self.didGetResponse?()
         }
     }
     
     var internalError: Error? {
         didSet {
-           self.didGetResponse?()
+            self.didGetResponse?()
         }
     }
     
@@ -217,15 +217,15 @@ extension Request {
             print("\n\(response.statusCode) \(self.method.rawValue.uppercased()) \(url.absoluteString)")
             
             if let json = try? JSONSerialization.data(withJSONObject: response.allHeaderFields, options: .prettyPrinted),
-               let jsonString = json.prettyPrintedJSONString {
-               print("\nResponse Headers: \(jsonString)")
+                let jsonString = json.prettyPrintedJSONString {
+                print("\nResponse Headers: \(jsonString)")
                 
             } else {
-                 print("\nResponse Headers: \(response.allHeaderFields)")
+                print("\nResponse Headers: \(response.allHeaderFields)")
             }
             
             if let json = self.internalResponse?.data,
-               let jsonString = json.prettyPrintedJSONString {
+                let jsonString = json.prettyPrintedJSONString {
                 
                 print("\nData:")
                 if jsonString.length == 0 {
@@ -234,7 +234,7 @@ extension Request {
                     print("\(jsonString)")
                 }
             }
-            print("\n------------------------")
+            print("------------------------")
             
         } else if let internalError = self.internalError {
             
