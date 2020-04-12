@@ -38,7 +38,7 @@ public func request(_ requestDataProvider: RequestDataProvider) -> Request {
 
 public func setRetrier(_ retrier: RequestRetrier) {
     
-     Client.shared.retrier = retrier
+//     Client.shared.retrier = retrier
 }
 
 public var isLoggingEnabled: Bool = false

@@ -7,10 +7,12 @@
 //
 
 import Foundation
+import Alamofire
 
 public struct HTTP {}
 
 extension HTTP {
     
     public typealias Headers = [String: String]
+
 }

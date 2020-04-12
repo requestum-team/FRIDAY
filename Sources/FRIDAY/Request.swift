@@ -9,14 +9,13 @@
 import Foundation
 
 import Alamofire
-import os.log
 
 public typealias Parameters = [String: Any]
 
 open class Request {
     
     public typealias ProgressHandler = (Progress) -> Void
-
+    
     public let url: URLConvertible
     public let method: HTTP.Method
     public let parameters: Parameters?
@@ -27,6 +26,14 @@ open class Request {
     public let encoding: ParameterEncoding
     public var didGetResponse: (() -> Void)?
     
+    public var alamofireHeaders: Alamofire.HTTPHeaders? {
+        
+        guard let headers = self.headers else {
+            return nil
+        }
+        return Alamofire.HTTPHeaders(headers)
+    }
+    
     let requestQueue: OperationQueue = {
         let operationQueue = OperationQueue()
         
@@ -36,7 +43,7 @@ open class Request {
         
         return operationQueue
     }()
-
+    
     var internalRequest: Alamofire.DataRequest? {
         didSet {
             internalRequest?.validate(statusCode: 200..<400)
@@ -44,15 +51,15 @@ open class Request {
         }
     }
     
-    var internalResponse: Alamofire.DataResponse<Data>? {
+    var internalResponse: AFDataResponse<Data>? {
         didSet {
-           self.didGetResponse?()
+            self.didGetResponse?()
         }
     }
     
     var internalError: Error? {
         didSet {
-           self.didGetResponse?()
+            self.didGetResponse?()
         }
     }
     
@@ -133,11 +140,12 @@ extension Request {
             if FRIDAY.isLoggingEnabled {
                 self?.logResponse()
             }
+            
             let result = parser.parse(
                 request: self?.internalResponse?.request,
                 response: self?.internalResponse?.response,
                 data: self?.internalResponse?.data,
-                error: self?.internalResponse?.result.error ?? self?.internalError
+                error: self?.internalResponse?.error ?? self?.internalError
             )
             
             let response = Response(
@@ -181,19 +189,22 @@ extension Request {
         print("\nFRIDAY:\nRequest")
         print("\(method.rawValue) \(url.asURL().absoluteString)")
         
-        if let headers = headers {
-            print("Headers: \(headers)")
+        if let headers = headers,
+            let json = try? JSONSerialization.data(withJSONObject: headers, options: .prettyPrinted),
+            let jsonString = json.prettyPrintedJSONString {
+            print("Headers:\n\(jsonString)")
         }
         
-        if let parameters = parameters {
-            print("Parameters: \(parameters)")
+        if let parameters = parameters,
+            let json = try? JSONSerialization.data(withJSONObject: parameters, options: .prettyPrinted),
+            let jsonString = json.prettyPrintedJSONString {
+            print("Parameters:\n\(jsonString)")
         }
         
         if let multipartData = multipartData {
             print("Multipart Data: \(multipartData)")
         }
-        
-        print("\n")
+        print("------------------------")
         
         return self
     }
@@ -202,20 +213,28 @@ extension Request {
         
         if let response = self.internalResponse?.response, let url = response.url {
             
-            print("\nFRIDAY:\nResponse\n")
-            print("\(response.statusCode) \(self.method.rawValue.uppercased()) \(url.absoluteString)")
-            print("\nResponse Headers: \(response.allHeaderFields)")
+            print("\nFRIDAY:\nResponse")
+            print("\n\(response.statusCode) \(self.method.rawValue.uppercased()) \(url.absoluteString)")
+            
+            if let json = try? JSONSerialization.data(withJSONObject: response.allHeaderFields, options: .prettyPrinted),
+                let jsonString = json.prettyPrintedJSONString {
+                print("\nResponse Headers: \(jsonString)")
+                
+            } else {
+                print("\nResponse Headers: \(response.allHeaderFields)")
+            }
+            
             if let json = self.internalResponse?.data,
-               let jsonString = String(data: json, encoding: String.Encoding.utf8) {
+                let jsonString = json.prettyPrintedJSONString {
                 
                 print("\nData:")
-                if jsonString.isEmpty {
-                    print("\nEmpty\n")
+                if jsonString.length == 0 {
+                    print("\nEmpty")
                 } else {
-                    print("\n\(jsonString)")
+                    print("\(jsonString)")
                 }
             }
-            print("\n------------")
+            print("------------------------")
             
         } else if let internalError = self.internalError {
             
