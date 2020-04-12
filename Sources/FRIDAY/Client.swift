@@ -132,5 +132,4 @@ extension Client {
                       completion: @escaping (RetryResult) -> Void) {
         self.retrier?.retry(request, for: session, dueTo: error, completion: completion)
     }
-    
 }

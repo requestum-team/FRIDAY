@@ -210,15 +210,15 @@ extension Request {
         
         if let response = self.internalResponse?.response, let url = response.url {
             
-            print("\nFRIDAY:\nResponse\n")
-            print("\(response.statusCode) \(self.method.rawValue.uppercased()) \(url.absoluteString)")
+            print("\nFRIDAY:\nResponse")
+            print("\n\(response.statusCode) \(self.method.rawValue.uppercased()) \(url.absoluteString)")
             print("\nResponse Headers: \(response.allHeaderFields)")
             if let json = self.internalResponse?.data,
-               let jsonString = String(data: json, encoding: String.Encoding.utf8) {
+                let jsonString = json.prettyPrintedJSONString {
                 
                 print("\nData:")
-                if jsonString.isEmpty {
-                    print("\nEmpty\n")
+                if jsonString.length == 0 {
+                    print("\nEmpty")
                 } else {
                     print("\n\(jsonString)")
                 }
