@@ -189,12 +189,16 @@ extension Request {
         print("\nFRIDAY:\nRequest")
         print("\(method.rawValue) \(url.asURL().absoluteString)")
         
-        if let headers = headers {
-            print("Headers: \(headers)")
+        if let headers = headers,
+            let json = try? JSONSerialization.data(withJSONObject: headers, options: .prettyPrinted),
+            let jsonString = json.prettyPrintedJSONString {
+            print("Headers:\n\(jsonString)")
         }
         
-        if let parameters = parameters {
-            print("Parameters: \(parameters)")
+        if let parameters = parameters,
+            let json = try? JSONSerialization.data(withJSONObject: parameters, options: .prettyPrinted),
+            let jsonString = json.prettyPrintedJSONString {
+            print("Parameters:\n\(jsonString)")
         }
         
         if let multipartData = multipartData {
@@ -227,7 +231,7 @@ extension Request {
                 if jsonString.length == 0 {
                     print("\nEmpty")
                 } else {
-                    print("\n\(jsonString)")
+                    print("\(jsonString)")
                 }
             }
             print("\n------------------------")
