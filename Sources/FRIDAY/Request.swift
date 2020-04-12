@@ -200,8 +200,7 @@ extension Request {
         if let multipartData = multipartData {
             print("Multipart Data: \(multipartData)")
         }
-        
-        print("\n")
+        print("------------------------")
         
         return self
     }
@@ -212,9 +211,17 @@ extension Request {
             
             print("\nFRIDAY:\nResponse")
             print("\n\(response.statusCode) \(self.method.rawValue.uppercased()) \(url.absoluteString)")
-            print("\nResponse Headers: \(response.allHeaderFields)")
+            
+            if let json = try? JSONSerialization.data(withJSONObject: response.allHeaderFields, options: .prettyPrinted),
+               let jsonString = json.prettyPrintedJSONString {
+               print("\nResponse Headers: \(jsonString)")
+                
+            } else {
+                 print("\nResponse Headers: \(response.allHeaderFields)")
+            }
+            
             if let json = self.internalResponse?.data,
-                let jsonString = json.prettyPrintedJSONString {
+               let jsonString = json.prettyPrintedJSONString {
                 
                 print("\nData:")
                 if jsonString.length == 0 {
@@ -223,7 +230,7 @@ extension Request {
                     print("\n\(jsonString)")
                 }
             }
-            print("\n------------")
+            print("\n------------------------")
             
         } else if let internalError = self.internalError {
             
