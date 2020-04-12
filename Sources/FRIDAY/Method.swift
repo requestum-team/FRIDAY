@@ -26,9 +26,7 @@ extension HTTP {
         
         public func asAlamofireHTTPMethod() -> Alamofire.HTTPMethod {
             
-            guard let method = Alamofire.HTTPMethod(rawValue: rawValue) else {
-                return .get
-            }
+            let method = Alamofire.HTTPMethod(rawValue: rawValue)
             
             return method
         }

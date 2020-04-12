@@ -5,14 +5,14 @@ import PackageDescription
 
 let package = Package(
     name: "FRIDAY",
+    platforms: [.iOS(.v10)],
     products: [
-        
         .library(
             name: "FRIDAY",
             targets: ["FRIDAY"]),
     ],
     dependencies: [
-         .package(url: "https://github.com/Alamofire/Alamofire.git", from: "4.0.0")
+        .package(url: "https://github.com/Alamofire/Alamofire.git", from: "5.1.0")
     ],
     targets: [
        
@@ -20,5 +20,5 @@ let package = Package(
             name: "FRIDAY",
             dependencies: ["Alamofire"]),
     ],
-    swiftLanguageVersions: [.v4, .v5]
+    swiftLanguageVersions: [.v5]
 )

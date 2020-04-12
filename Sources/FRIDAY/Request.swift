@@ -9,7 +9,6 @@
 import Foundation
 
 import Alamofire
-import os.log
 
 public typealias Parameters = [String: Any]
 
@@ -26,6 +25,14 @@ open class Request {
     public let formDataBuilder: FormDataBuilder
     public let encoding: ParameterEncoding
     public var didGetResponse: (() -> Void)?
+    
+    public var alamofireHeaders: Alamofire.HTTPHeaders? {
+      
+        guard let headers = self.headers else {
+            return nil
+        }
+        return Alamofire.HTTPHeaders(headers)
+    }
     
     let requestQueue: OperationQueue = {
         let operationQueue = OperationQueue()
@@ -44,7 +51,7 @@ open class Request {
         }
     }
     
-    var internalResponse: Alamofire.DataResponse<Data>? {
+    var internalResponse: AFDataResponse<Data>? {
         didSet {
            self.didGetResponse?()
         }
@@ -133,11 +140,12 @@ extension Request {
             if FRIDAY.isLoggingEnabled {
                 self?.logResponse()
             }
+            
             let result = parser.parse(
                 request: self?.internalResponse?.request,
                 response: self?.internalResponse?.response,
                 data: self?.internalResponse?.data,
-                error: self?.internalResponse?.result.error ?? self?.internalError
+                error: self?.internalResponse?.error ?? self?.internalError
             )
             
             let response = Response(

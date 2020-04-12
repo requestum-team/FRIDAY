@@ -9,30 +9,18 @@
 import Foundation
 import Alamofire
 
-open class Client {
+open class Client: RequestInterceptor {
     
     public static var shared = Client()
         
-    public let manager: Alamofire.SessionManager
+    public var session: Alamofire.Session
     public static var adapter: ((URLRequest) -> URLRequest)?
-    public var retrier: RequestRetrier? {
-        didSet {
-            manager.retrier = retrier
-        }
-    }
+    private var queque: DispatchQueue = DispatchQueue(label: "Client.Queqeu", qos: .background, attributes: .concurrent)
+    public var retrier: RequestRetrier?
     
-    public var startRequestsImmediately: Bool = true {
-        didSet {
-            manager.startRequestsImmediately = startRequestsImmediately
-        }
-    }
-    
-    public init(manager: Alamofire.SessionManager = Alamofire.SessionManager.default) {
+    public init(session: Alamofire.Session = Alamofire.Session.default) {
         
-        self.manager = manager
-        self.manager.startRequestsImmediately = startRequestsImmediately
-        self.manager.adapter = self
-        
+        self.session = session
     }
     
     @discardableResult
@@ -103,47 +91,46 @@ extension Client {
         
         if let data = request.data {
             
-            let alamofireRequest = manager.upload(data, to: request.url.asURL(), method: method, headers: request.headers)
+            let alamofireRequest = session.upload(data, to: request.url.asURL(),
+                                                  method: method,
+                                                  headers: request.alamofireHeaders,
+                                                  interceptor: self,
+                                                  requestModifier: nil)
             completion(alamofireRequest, nil)
             
         } else if request.multipartData != nil {
             
-            manager.upload(multipartFormData: { formData in
-                
+            
+            let alamofireRequest = session.upload(multipartFormData: { formData in
                 request.formDataBuilder.fillFormData(formData, for: request)
-                
-            }, to: request.url.asURL(), method: method, headers: request.headers, encodingCompletion: { result in
-                
-                switch result {
-                case .success(let upload, _, _):
-                    
-                    completion(upload, nil)
-                    
-                case .failure(let encodingError):
-                    completion(nil, encodingError)
-                }
-            })
-            
+            }, to: request.url.asURL(), interceptor: self)
+            completion(alamofireRequest, nil)
+    
         } else {
-            let alamofireRequest = manager.request(request.url.asURL(), method: method, parameters: request.parameters, encoding: request.encoding, headers: request.headers)
-            
+            let alamofireRequest = session.request(request.url.asURL(), method: method, parameters: request.parameters, encoding: request.encoding, headers: request.alamofireHeaders, interceptor: self)
             completion(alamofireRequest, nil)
         }
     }
     
     public func cancelAllRequests() {
         
-        manager.session.getTasksWithCompletionHandler { dataTasks, uploadTasks, downloadTasks in
-            dataTasks.forEach { $0.cancel() }
-            uploadTasks.forEach { $0.cancel() }
-            downloadTasks.forEach { $0.cancel() }
-        }
+        session.cancelAllRequests()
     }
 }
 
-extension Client: RequestAdapter {
+// MARK: - RequestInterceptor
+
+extension Client {
     
-    public func adapt(_ urlRequest: URLRequest) throws -> URLRequest {
-        return Client.adapter?(urlRequest) ?? urlRequest
+    public func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping (Result<URLRequest, Error>) -> Void) {
+        completion(.success(Client.adapter?(urlRequest) ?? urlRequest))
     }
+    
+    public func retry(_ request: Alamofire.Request,
+                      for session: Session,
+                      dueTo error: Error,
+                      completion: @escaping (RetryResult) -> Void) {
+        self.retrier?.retry(request, for: session, dueTo: error, completion: completion)
+    }
+    
 }
