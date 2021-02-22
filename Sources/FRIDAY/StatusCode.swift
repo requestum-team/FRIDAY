@@ -42,6 +42,7 @@ extension HTTP {
         case methodNotAllowed = 405
         case notAcceptable = 406
         case requestTimeout = 408
+        case conflict = 409
         case lengthRequired = 411
         case payloadTooLarge = 413
         case uriTooLong = 414
