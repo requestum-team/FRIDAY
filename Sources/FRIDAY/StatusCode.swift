@@ -52,6 +52,7 @@ extension HTTP {
         case requestHeaderFieldsTooLarge = 431
         case nginxNoResponse = 444
         case retryWith = 449
+        case error460 = 460
         case nginxSSLCertificateError = 495
         case nginxSSLCertificateRequired = 496
         case nginxHTTPToHTTPS = 497
