@@ -63,7 +63,7 @@ open class Request {
         }
     }
     
-    init(
+    public init(
         url: URLConvertible,
         method: HTTP.Method,
         parameters: Parameters? = nil,

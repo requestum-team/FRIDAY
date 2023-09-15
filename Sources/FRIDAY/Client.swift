@@ -103,7 +103,7 @@ extension Client {
             
             let alamofireRequest = session.upload(multipartFormData: { formData in
                 request.formDataBuilder.fillFormData(formData, for: request)
-            }, to: request.url.asURL(), interceptor: self)
+            }, to: request.url.asURL(),method: method, headers: request.alamofireHeaders, interceptor: self)
             completion(alamofireRequest, nil)
     
         } else {
