@@ -17,7 +17,8 @@ public func request(
     multipartData: [MultipartData]? = nil,
     formDataBuilder: FormDataBuilder = DefaultFormDataBuilder(),
     headers: HTTP.Headers? = nil,
-    encoding: ParameterEncoding) -> Request {
+    encoding: ParameterEncoding,
+    interceptor: RequestInterceptor? = nil) -> Request {
     
     return Client.shared.request(
         url,
@@ -26,19 +27,22 @@ public func request(
         multipartData: multipartData,
         formDataBuilder: formDataBuilder,
         headers: headers,
-        encoding: encoding
+        encoding: encoding,
+        interceptor: interceptor
     )
 }
 
 @discardableResult
 public func request(_ requestDataProvider: RequestDataProvider, interceptor: RequestInterceptor? = nil) -> Request {
     
-    return Client.shared.request(requestDataProvider)
+    return Client.shared.request(requestDataProvider, interceptor: interceptor)
 }
 
-public func setRetrier(_ retrier: RequestRetrier) {
+@discardableResult
+public func request(_ requestDataProvider: RequestDataProvider & RequestInterceptor) -> Request {
     
-//     Client.shared.retrier = retrier
+    return Client.shared.request(requestDataProvider, interceptor: requestDataProvider)
 }
+
 
 public var isLoggingEnabled: Bool = false
