@@ -31,7 +31,7 @@ public func request(
 }
 
 @discardableResult
-public func request(_ requestDataProvider: RequestDataProvider) -> Request {
+public func request(_ requestDataProvider: RequestDataProvider, interceptor: RequestInterceptor? = nil) -> Request {
     
     return Client.shared.request(requestDataProvider)
 }

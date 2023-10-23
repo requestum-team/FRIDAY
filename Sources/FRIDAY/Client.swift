@@ -15,7 +15,7 @@ open class Client: RequestInterceptor {
         
     public var session: Alamofire.Session
     public static var adapter: ((URLRequest) -> URLRequest)?
-    private var queque: DispatchQueue = DispatchQueue(label: "Client.Queqeu", qos: .background, attributes: .concurrent)
+    private var queue: DispatchQueue = DispatchQueue(label: "Client.Queeu", qos: .background, attributes: .concurrent)
     public var retrier: RequestRetrier?
     
     public init(session: Alamofire.Session = Alamofire.Session.default) {
@@ -31,7 +31,8 @@ open class Client: RequestInterceptor {
         multipartData: [MultipartData]? = nil,
         data: Data? = nil,
         formDataBuilder: FormDataBuilder = DefaultFormDataBuilder(),
-        headers: HTTP.Headers? = nil, encoding: ParameterEncoding) -> Request {
+        headers: HTTP.Headers? = nil, encoding: ParameterEncoding,
+        interceptor: RequestInterceptor? = nil) -> Request {
         
         let request = Request(
             url: url,
@@ -66,7 +67,7 @@ open class Client: RequestInterceptor {
     }
     
     @discardableResult
-    public func request(_ requestDataProvider: RequestDataProvider) -> Request {
+    public func request(_ requestDataProvider: RequestDataProvider, interceptor: RequestInterceptor? = nil) -> Request {
         
         let url = requestDataProvider.baseUrl.asURL().appendingPathComponent(requestDataProvider.path)
         Client.adapter = requestDataProvider.adapter
@@ -78,14 +79,14 @@ open class Client: RequestInterceptor {
             data: requestDataProvider.data,
             formDataBuilder: requestDataProvider.formDataBuilder,
             headers: requestDataProvider.headers,
-            encoding: requestDataProvider.encoding
-        )
+            encoding: requestDataProvider.encoding,
+            interceptor: interceptor)
     }
 }
 
 extension Client {
     
-    func alamofireRequest(for request: Request, completion: @escaping (Alamofire.DataRequest?, Error?) -> Void) {
+    func alamofireRequest(for request: Request, interceptor: RequestInterceptor? = nil, completion: @escaping (Alamofire.DataRequest?, Error?) -> Void) {
         
         let method = request.method.asAlamofireHTTPMethod()
         
@@ -94,7 +95,7 @@ extension Client {
             let alamofireRequest = session.upload(data, to: request.url.asURL(),
                                                   method: method,
                                                   headers: request.alamofireHeaders,
-                                                  interceptor: self,
+                                                  interceptor: interceptor,
                                                   requestModifier: nil)
             completion(alamofireRequest, nil)
             
@@ -103,11 +104,11 @@ extension Client {
             
             let alamofireRequest = session.upload(multipartFormData: { formData in
                 request.formDataBuilder.fillFormData(formData, for: request)
-            }, to: request.url.asURL(),method: method, headers: request.alamofireHeaders, interceptor: self)
+            }, to: request.url.asURL(),method: method, headers: request.alamofireHeaders, interceptor: interceptor)
             completion(alamofireRequest, nil)
     
         } else {
-            let alamofireRequest = session.request(request.url.asURL(), method: method, parameters: request.parameters, encoding: request.encoding, headers: request.alamofireHeaders, interceptor: self)
+            let alamofireRequest = session.request(request.url.asURL(), method: method, parameters: request.parameters, encoding: request.encoding, headers: request.alamofireHeaders, interceptor: interceptor)
             completion(alamofireRequest, nil)
         }
     }
