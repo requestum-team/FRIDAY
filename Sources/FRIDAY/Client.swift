@@ -49,7 +49,7 @@ open class Client: RequestInterceptor {
             request.log()
         }
         
-        alamofireRequest(for: request) { alamofireRequest, error in
+            alamofireRequest(for: request, interceptor: interceptor) { alamofireRequest, error in
             
             if let alamofireRequest = alamofireRequest {
                 request.internalRequest = alamofireRequest
